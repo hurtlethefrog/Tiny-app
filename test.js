@@ -1,6 +1,13 @@
+function generateRandomString() {
+  return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5)
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-console.log(urlDatabase["9sm5xK"])
+let ID = generateRandomString();
+  urlDatabase[ID] = 'www';
+
+console.log(urlDatabase)
