@@ -14,10 +14,30 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const updateLongUrl = (shortURL, longURL) => {
+  urlDatabase[shortURL] = longURL;
+};
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   let { shortURL } = req.params;
   delete urlDatabase[shortURL];
   res.redirect('/urls')
+})
+
+app.post("/urls/updating/:shortURL", (req, res) => {
+  let { shortURL} = req.params;
+  let longURL = req.body.longURL;
+  
+  updateLongUrl(shortURL, longURL);
+
+  res.redirect('/urls')
+})
+
+app.get("/urls/:shortURL/update", (req, res) => {
+  let { shortURL } = req.params;
+  let longURL = urlDatabase[shortURL];
+  res.redirect(`/urls/${shortURL}`)
+
 })
 
 app.get("/urls/new", (req, res) => {
@@ -32,7 +52,6 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
-  console.log(templateVars)
   res.render("urls_index", templateVars);
 });
 
