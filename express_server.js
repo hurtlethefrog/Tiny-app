@@ -14,6 +14,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  let { shortURL } = req.params;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls')
+})
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
@@ -26,8 +32,10 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
+  console.log(templateVars)
   res.render("urls_index", templateVars);
 });
+
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
@@ -42,9 +50,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.delete("/urls/:shortURL/delete", (req, res) => {
-  let {shortURL} = req.params;
-})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
