@@ -12,7 +12,6 @@ function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5)
 }
 
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -30,6 +29,11 @@ const usersDatabase = {
     password: "dishwasher-funk"
   }
 }
+
+const loggedIn = () => {
+
+}
+
 // returns true if email exists already in DB
 const checkEmail = (email) => {
   for (const userID in usersDatabase) {
@@ -70,7 +74,11 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     user: usersDatabase[userID]
   }
+  if (userID) {
   res.render("urls_new", templateVars);
+  } else {
+    res.redirect('/login')
+  }
 });
 
 app.post("/urls", (req, res) => {
