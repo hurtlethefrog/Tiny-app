@@ -12,10 +12,32 @@ function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5)
 }
 
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const usersDatabase = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+// returns true if email exists already in DB
+const checkEmail = (email) => {
+  for (const userID in usersDatabase) {
+    if (usersDatabase[userID].email === email) {
+      return {isValid: true, userID}
+    }
+  } return {isValid: false, userID: null};
+}
 
 const updateLongUrl = (shortURL, longURL) => {
   urlDatabase[shortURL] = longURL;
@@ -38,15 +60,15 @@ app.post("/urls/updating/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL/update", (req, res) => {
   let { shortURL } = req.params;
-  let longURL = urlDatabase[shortURL];
   res.redirect(`/urls/${shortURL}`)
 
 })
 
 app.get("/urls/new", (req, res) => {
+  const userID = req.cookies['user_id']
   let templateVars = {
     urls: urlDatabase,
-    username: req.cookies['name']
+    user: usersDatabase[userID]
   }
   res.render("urls_new", templateVars);
 });
@@ -58,19 +80,21 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const userID = req.cookies['user_id']
   let templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['name']
+    user: usersDatabase[userID]
    };
   res.render("urls_index", templateVars);
 });
 
 
 app.get("/urls/:shortURL", (req, res) => {
+  const userID = req.cookies['user_id']
   let templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies['name']
+    user: usersDatabase[userID]
    };
   res.render("urls_show", templateVars);
 });
@@ -83,15 +107,58 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get('/login', (req, res) => {
+  const userID = req.cookies['user_id']
+  let templateVars = { 
+    user: usersDatabase[userID]
+   };
+  res.render('login_page', templateVars)
+})
+
 app.post('/login', (req, res) => {
-  console.log(req.body)
-  res.cookie('name' ,req.body.username)
-  res.redirect('/urls')
+  let { email, password } = req.body;
+  for ( const user in usersDatabase ) {
+    if ( usersDatabase[user].email === email ) { 
+      if ( usersDatabase[user].password === password ) {
+        res.cookie('user_id', usersDatabase[user].id);
+        res.redirect('/urls')
+      } else { 
+        throw '403: password incorrect, please try again'
+      }
+    }
+    } throw '403: email not found, please try again'
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('name')
+  res.clearCookie('user_id')
   res.redirect('/urls')
+})
+
+app.get('/register', (req, res) => {
+  const userID = req.cookies['user_id'];
+  templateVars = {
+    user: usersDatabase[userID]
+  }
+  res.render('registration', templateVars)
+})
+
+app.post('/register', (req, res) => {
+  let { email, password } = req.body;
+  if (email === "" || password === "") {
+    res.status(400).send('400: empty field, please fill in both fields')
+  }
+  if (checkEmail(email).isValid) {
+    res.status(400).send('400: email is taken, please choose another')
+  }
+  let id = generateRandomString();
+  usersDatabase[id] = {
+    id,
+    email,
+    password
+  };
+  res.cookie('user_id', id)
+  res.redirect('/urls');
+
 })
 
 app.listen(PORT, () => {
