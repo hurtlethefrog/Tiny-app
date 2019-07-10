@@ -13,8 +13,14 @@ function generateRandomString() {
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    user: 'string'
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    user: 'string'
+  }
 };
 
 const usersDatabase = { 
@@ -83,9 +89,21 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   let ID = generateRandomString();
-  urlDatabase[ID] = req.body.longURL
+  let { longURL, shortURL } = req.body;
+  urlDatabase[ID] = {
+  longURL,
+  user: req.cookies['user_id']
+  }
+  console.log(urlDatabase);
   res.redirect(`/urls/${ID}`);         
 });
+
+// let id = generateRandomString();
+// usersDatabase[id] = {
+//   id,
+//   email,
+//   password
+// };
 
 app.get("/urls", (req, res) => {
   const userID = req.cookies['user_id']
