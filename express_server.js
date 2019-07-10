@@ -34,9 +34,9 @@ const usersDatabase = {
 const checkEmail = (email) => {
   for (const userID in usersDatabase) {
     if (usersDatabase[userID].email === email) {
-      return true
+      return {isValid: true, userID}
     }
-  } return false;
+  } return {isValid: false, userID: null};
 }
 
 const updateLongUrl = (shortURL, longURL) => {
@@ -107,13 +107,30 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get('/login', (req, res) => {
+  const userID = req.cookies['user_id']
+  let templateVars = { 
+    user: usersDatabase[userID]
+   };
+  res.render('login_page', templateVars)
+})
+
 app.post('/login', (req, res) => {
-  res.cookie('name' ,req.body.username)
-  res.redirect('/urls')
+  let { email, password } = req.body;
+  for ( const user in usersDatabase ) {
+    if ( usersDatabase[user].email === email ) { 
+      if ( usersDatabase[user].password === password ) {
+        res.cookie('user_id', usersDatabase[user].id);
+        res.redirect('/urls')
+      } else { 
+        throw '403: password incorrect, please try again'
+      }
+    }
+    } throw '403: email not found, please try again'
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('name')
+  res.clearCookie('user_id')
   res.redirect('/urls')
 })
 
@@ -130,7 +147,7 @@ app.post('/register', (req, res) => {
   if (email === "" || password === "") {
     res.status(400).send('400: empty field, please fill in both fields')
   }
-  if (checkEmail(email)) {
+  if (checkEmail(email).isValid) {
     res.status(400).send('400: email is taken, please choose another')
   }
   let id = generateRandomString();
