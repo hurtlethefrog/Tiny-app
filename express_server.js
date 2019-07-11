@@ -2,12 +2,16 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const cookieSession = require('cookie-session')
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
-app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys: ['thisisaverysecretkeyok'],
+}))
 
 function generateRandomString() {
   return Math.random().toString(36).substring(2, 5) + Math.random().toString(36).substring(2, 5)
@@ -60,7 +64,7 @@ const updateLongUrl = (shortURL, longURL) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   let { shortURL } = req.params;
-  const userID = req.cookies['user_id']
+  const userID = req.session['user_id']
   if (urlDatabase[shortURL].user === userID) {
     delete urlDatabase[shortURL];
     res.redirect('/urls')
@@ -70,7 +74,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/updating/:shortURL", (req, res) => {
   let { shortURL} = req.params;
   let longURL = req.body.longURL;
-  const userID = req.cookies['user_id']
+  const userID = req.session['user_id']
   
   if (urlDatabase[shortURL].user === userID) {
     updateLongUrl(shortURL, longURL);
@@ -85,7 +89,7 @@ app.get("/urls/:shortURL/update", (req, res) => {
 })
 
 app.get("/urls/new", (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.session['user_id']
   let templateVars = {
     urls: urlDatabase,
     user: usersDatabase[userID]
@@ -102,13 +106,13 @@ app.post("/urls", (req, res) => {
   let { longURL, shortURL } = req.body;
   urlDatabase[ID] = {
   longURL,
-  user: req.cookies['user_id']
+  user: req.session['user_id']
   }
   res.redirect(`/urls/${ID}`);         
 });
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.session['user_id']
   let userUrlDB = {};
 
   croppedUrlDB(userID, userUrlDB)
@@ -122,7 +126,7 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.sessions['user_id']
 
 
   let templateVars = { 
@@ -144,7 +148,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const userID = req.cookies['user_id']
+  const userID = req.session['user_id']
   let templateVars = { 
     user: usersDatabase[userID]
    };
@@ -171,7 +175,7 @@ app.post('/logout', (req, res) => {
 })
 
 app.get('/register', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session['user_id'];
   templateVars = {
     user: usersDatabase[userID]
   }
@@ -194,6 +198,8 @@ app.post('/register', (req, res) => {
   };
   console.log(usersDatabase)
   res.cookie('user_id', id)
+  req.session.user_id = "user_id";
+  // res.cookie('user_id', id)
   res.redirect('/urls');
 
 })
