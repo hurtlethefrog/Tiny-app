@@ -36,8 +36,12 @@ const usersDatabase = {
   }
 }
 
-const loggedIn = () => {
-
+const croppedUrlDB = (userID, newDB) => {
+  for (const shortURL in urlDatabase) {
+    if (userID === urlDatabase[shortURL].user) {
+      newDB[shortURL] = urlDatabase[shortURL]
+    }
+  }
 }
 
 // returns true if email exists already in DB
@@ -55,17 +59,22 @@ const updateLongUrl = (shortURL, longURL) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   let { shortURL } = req.params;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls')
+  const userID = req.cookies['user_id']
+  if (urlDatabase[shortURL].user === userID) {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls')
+    } res.status(400).render('403: please log into the apropriate TinyUrl account to delete this URL')
 })
 
 app.post("/urls/updating/:shortURL", (req, res) => {
   let { shortURL} = req.params;
   let longURL = req.body.longURL;
+  const userID = req.cookies['user_id']
   
-  updateLongUrl(shortURL, longURL);
-
-  res.redirect('/urls')
+  if (urlDatabase[shortURL].user === userID) {
+    updateLongUrl(shortURL, longURL);
+    res.redirect('/urls')
+    } res.status(400).render('403: please log into the apropriate TinyUrl account to modify this URL')
 })
 
 app.get("/urls/:shortURL/update", (req, res) => {
@@ -94,21 +103,17 @@ app.post("/urls", (req, res) => {
   longURL,
   user: req.cookies['user_id']
   }
-  console.log(urlDatabase);
   res.redirect(`/urls/${ID}`);         
 });
 
-// let id = generateRandomString();
-// usersDatabase[id] = {
-//   id,
-//   email,
-//   password
-// };
-
 app.get("/urls", (req, res) => {
   const userID = req.cookies['user_id']
+  let userUrlDB = {};
+
+  croppedUrlDB(userID, userUrlDB)
+
   let templateVars = { 
-    urls: urlDatabase,
+    urls: userUrlDB,
     user: usersDatabase[userID]
    };
   res.render("urls_index", templateVars);
@@ -117,12 +122,16 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies['user_id']
+
+
   let templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
     user: usersDatabase[userID]
    };
+  if (urlDatabase[req.params.shortURL].user === userID) {
   res.render("urls_show", templateVars);
+  } throw '403: please log into the apropriate TinyUrl account to modify this URL'
 });
 
 app.get("/", (req, res) => {
@@ -185,6 +194,12 @@ app.post('/register', (req, res) => {
   res.cookie('user_id', id)
   res.redirect('/urls');
 
+})
+
+app.get('/u/:shortURL', (req, res) => {
+  let fullsite = urlDatabase[req.params.shortURL].longURL;
+
+  res.redirect(fullsite)
 })
 
 app.listen(PORT, () => {
