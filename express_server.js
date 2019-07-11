@@ -121,7 +121,14 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const userID = req.session['user_id'];
+  const templateVars = {
+    user: usersDatabase[userID]
+  }
+  if (userID) {
+    res.redirect('/urls')
+  }
+  res.render("home", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -130,14 +137,14 @@ app.get("/urls.json", (req, res) => {
 
 app.get('/login', (req, res) => {
   const userID = req.session['user_id'];
-  let templateVars = {
+  const templateVars = {
     user: usersDatabase[userID]
   };
   res.render('login_page', templateVars);
 });
 
 app.post('/login', (req, res) => {
-  let { email, password } = req.body;
+  const { email, password } = req.body;
   for (const user in usersDatabase) {
     if (usersDatabase[user].email === email) {
       if (bcrypt.compareSync(password, usersDatabase[user].password)) {
@@ -157,14 +164,14 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   const userID = req.session['user_id'];
-  let templateVars = {
+  const templateVars = {
     user: usersDatabase[userID]
   };
   res.render('registration', templateVars);
 });
 
 app.post('/register', (req, res) => {
-  let { email, password } = req.body;
+  const { email, password } = req.body;
   if (email === "" || password === "") {
     res.status(400).send('400: empty field, please fill in both fields');
   }
@@ -181,9 +188,9 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 
 });
-
+// redirects to a longurl after clicking on the corresponding shorturl
 app.get('/u/:shortURL', (req, res) => {
-  let fullsite = urlDatabase[req.params.shortURL].longURL;
+  const fullsite = urlDatabase[req.params.shortURL].longURL;
 
   res.redirect(fullsite);
 });
