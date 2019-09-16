@@ -4,7 +4,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["Amazing register screen, where you can make a new acocunt, emails already registered will not be accepted"](tiny-app/docs/amazing-register-screen.png)
+!["Amazing register screen, where you can make a new acocunt, emails already registered will not be accepted"](https://github.com/hurtlethefrog/Tiny-app/blob/master/docs/amazing-register-screen.png)
 !["Long Url editor will allow you to keep a functioning tinyUrl while changing the destination link"](tiny-app/docs/powerful-longUrl-editor.png)
 !["The urls summary page, where you can see all of your created sortUrls, users will only be able to see their own Urls"](tiny-app/docs/thrilling-urls-page.png)
 
